@@ -177,6 +177,15 @@ Meta空间无限大，此参数无效。
 -Xss, 设置每个线程栈的字节数。 例如 -Xss1m 指定线程栈为 1MB，与-
 * XX:ThreadStackSize=1m 等价
 
+**详情请参考java命令参数文档: https://docs.oracle.com/en/java/javase/15/docs/specs/man/java.html**
+
+*默认情况下，即启动时不指定任何参数*
+
+1. 最大堆内存为物理机内存（>1g）的 1/4
+2. 初始化堆内存为物理机内存(>1g)的 1/64 （new + old）
+3. -XX:ParallelGCThreads=并行GC线程数 为物理机CPU逻辑线程数 <= 8 ? CPU逻辑线程数 ： CPU逻辑线程数 * 5/8+3
+
+
 ![avatar](作业目录/jvm.png)
 
 ### 3. 参考文章
@@ -202,3 +211,9 @@ https://cloud.tencent.com/developer/article/1586341
 >jstat -gc <pid> 1000 1000
 
 ![avatar](学习总结/GC分析/jstat-gc.png)
+
+
+#### 4. 工具汇总
+ 
+1. IDEA插件jclasslib
+2. JD-GUI Class to Java File: https://github.com/java-decompiler/jd-gui/releases
