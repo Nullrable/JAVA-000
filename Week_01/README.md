@@ -67,3 +67,63 @@ https://zhuanlan.zhihu.com/p/81965927?from_voters_page=true
 4. 解析（Resolution）：符号解析为引用
 5. 初始化（Initialization）：构造器、静态变量赋值、静态代码块6.使用（Using）
 6. 卸载（Unloading）
+
+![avatar](类的生命周期.png)
+
+### 2. 类的加载时机
+
+1. 当虚拟机启动时，初始化用户指定的主类，就是启动执行的 main 方法所在的类；
+2. 当遇到用以新建目标类实例的 new 指令时，初始化 new 指令的目标类，就是 new
+一个类的时候要初始化；
+3. 当遇到调用静态方法的指令时，初始化该静态方法所在的类；
+4. 当遇到访问静态字段的指令时，初始化该静态字段所在的类；
+5. 子类的初始化会触发父类的初始化；
+6. 如果一个接口定义了 default 方法，那么直接实现或者间接实现该接口的类的初始化，
+会触发该接口的初始化；
+7. 使用反射 API 对某个类进行反射调用时，初始化这个类，其实跟前面一样，反射调用
+要么是已经有实例了，要么是静态方法，都需要初始化；
+8. 当初次调用 MethodHandle 实例时，初始化该 MethodHandle 指向的方法所在的
+类。
+
+### 3. 不会初始化（可能会加载）
+
+1. 通过子类引用父类的静态字段，只会触发父类的初始化，而不会触发子类的初始化。
+2. 定义对象数组，不会触发该类的初始化。
+3. 常量在编译期间会存入调用类的常量池中，本质上并没有直接引用定义常量的类，不
+会触发定义常量所在的类。
+4. 通过类名获取 Class 对象，不会触发类的初始化，Hello.class 不会让 Hello 类初始
+化。
+5. 通过 Class.forName 加载指定类时，如果指定参数 initialize 为 false 时，也不会触
+发类初始化，其实这个参数是告诉虚拟机，是否要对类进行初始化。Class.forName
+（“jvm.Hello”）默认会加载 Hello 类。
+6. 通过 ClassLoader 默认的 loadClass 方法，也不会触发初始化动作（加载了，但是
+不初始化）。
+
+### 4. 三类加载器
+1. 启动类加载器（BootstrapClassLoader）
+2. 扩展类加载器（ExtClassLoader）
+3. 应用类加载器（AppClassLoader）
+
+
+![avatar](classloader.png)
+
+## 三. JVM参数
+
+* -Xmx, 指定最大堆内存。 如 -Xmx4g. 这只是限制了 Heap 部分的最大值为4g。
+这个内存不包括栈内存，也不包括堆外使用的内存。
+* -Xms, 指定堆内存空间的初始大小。 如 -Xms4g。 而且指定的内存大小，并
+不是操作系统实际分配的初始值，而是GC先规划好，用到才分配。 专用服务
+器上需要保持 –Xms 和 –Xmx 一致，否则应用刚启动可能就有好几个 FullGC。
+当两者配置不一致时，堆内存扩容可能会导致性能抖动。
+* -Xmn, 等价于 -XX:NewSize，使用 G1 垃圾收集器 不应该 设置该选项，在其
+他的某些业务场景下可以设置。官方建议设置为 -Xmx 的 1/2 ~ 1/4.
+* -XX：MaxPermSize=size, 这是 JDK1.7 之前使用的。Java8 默认允许的
+Meta空间无限大，此参数无效。
+* -XX：MaxMetaspaceSize=size, Java8 默认不限制 Meta 空间, 一般不允许设
+置该选项。
+* -XX：MaxDirectMemorySize=size，系统可以使用的最大堆外内存，这个参
+数跟 -Dsun.nio.MaxDirectMemorySize 效果相同。
+-Xss, 设置每个线程栈的字节数。 例如 -Xss1m 指定线程栈为 1MB，与-
+* XX:ThreadStackSize=1m 等价
+
+![avatar](作业目录/jvm.png)
