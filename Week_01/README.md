@@ -68,7 +68,7 @@ https://zhuanlan.zhihu.com/p/81965927?from_voters_page=true
 5. 初始化（Initialization）：构造器、静态变量赋值、静态代码块6.使用（Using）
 6. 卸载（Unloading）
 
-![avatar](类的生命周期.png)
+![avatar](resource/类的生命周期.png)
 
 ### 2. 类的加载时机
 
@@ -105,9 +105,60 @@ https://zhuanlan.zhihu.com/p/81965927?from_voters_page=true
 3. 应用类加载器（AppClassLoader）
 
 
-![avatar](classloader.png)
+![avatar](resource/classloader.png)
 
-## 三. JVM参数
+## 三. JVM内存模型
+
+### 1. JVM内存结构
+
+#### 1.1 JVM整体内存结构
+
+>每启动一个线程，JVM 就会在栈空间栈分
+配对应的 线程栈, 比如 1MB 的空间（-
+Xss1m）。
+线程栈也叫做 Java 方法栈。 如果使用了
+JNI 方法，则会分配一个单独的本地方法栈
+(Native Stack)。
+线程执行过程中，一般会有多个方法组成调
+用栈（Stack Trace）, 比如 A 调用 B，B 
+调用 C。。。每执行到一个方法，就会创建
+对应的 栈帧（Frame）。
+
+![avatar](resource/jvm内存结构.png)
+
+#### 1.2 JVM 栈内存结构
+
+>栈帧是一个逻辑上的概念，具体的大小在
+ 一个方法编写完成后基本上就能确定。
+ 比如返回值 需要有一个空间存放吧，每个
+ 局部变量都需要对应的地址空间，此外还
+ 有给指令使用的 操作数栈，以及 class 指
+ 针（标识这个栈帧对应的是哪个类的方法, 
+ 指向非堆里面的 Class 对象）。
+ 
+![avatar](resource/jvm栈内存结构.png)
+ 
+#### 1.3 JVM 堆内存结构
+
+>堆内存是所有线程共用的内存空间，JVM 将
+ Heap 内存分为年轻代（Young generation）和 老年代（Old generation, 也叫 Tenured）两部分。
+ 年轻代还划分为 3 个内存池，新生代（Eden 
+ space）和存活区（Survivor space）, 在大部分
+ GC 算法中有 2 个存活区（S0, S1），在我们可
+ 以观察到的任何时刻，S0 和 S1 总有一个是空的, 但一般较小，也不浪费多少空间。
+ Non-Heap 本质上还是 Heap，只是一般不归 GC
+ 管理，里面划分为 3 个内存池。
+ Metaspace, 以前叫持久代（永久代, Permanent 
+ generation）, Java8 换了个名字叫 Metaspace. 
+ CCS, Compressed Class Space, 存放 class 信
+ 息的，和 Metaspace 有交叉。
+ Code Cache, 存放 JIT 编译器编译后的本地机器
+ 代码。
+
+![avatar](resource/jvm-heap.png)
+
+
+### 2. JVM参数
 
 * -Xmx, 指定最大堆内存。 如 -Xmx4g. 这只是限制了 Heap 部分的最大值为4g。
 这个内存不包括栈内存，也不包括堆外使用的内存。
@@ -127,3 +178,27 @@ Meta空间无限大，此参数无效。
 * XX:ThreadStackSize=1m 等价
 
 ![avatar](作业目录/jvm.png)
+
+### 3. 参考文章
+
+https://cloud.tencent.com/developer/article/1586341
+
+
+### 四. JVM命令行工具
+
+#### 1. 常用的几个命令
+* jps/jinfo : 查看java进程
+* jstat : 查看jvm内部gc相关信息
+* jmap : 查看heap或类占用空间统计
+* jstack : 查看线程信息
+* jcmd : 执行jvm相关分析命令（整合命令）
+
+### 2. 命令演示
+>jstat -gcutil <pid> 1000 1000
+
+![avatar](学习总结/GC分析/jstat-gcutil.png)
+
+
+>jstat -gc <pid> 1000 1000
+
+![avatar](学习总结/GC分析/jstat-gc.png)
