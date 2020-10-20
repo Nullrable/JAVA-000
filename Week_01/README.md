@@ -61,9 +61,9 @@ https://zhuanlan.zhihu.com/p/81965927?from_voters_page=true
 
 ### 1. 类的生命周期
 
-1.加载（Loading）：找Class文件
-2.验证（Verification）：验证格式、依赖
-3.准备（Preparation）：静态字段、方法表
-4.解析（Resolution）：符号解析为引用
-5.初始化（Initialization）：构造器、静态变量赋值、静态代码块6.使用（Using）
-7.卸载（Unloading）
+1. 加载（Loading）：找Class文件
+2. 验证（Verification）：验证格式、依赖
+3. 准备（Preparation）：静态字段、方法表
+4. 解析（Resolution）：符号解析为引用
+5. 初始化（Initialization）：构造器、静态变量赋值、静态代码块6.使用（Using）
+6. 卸载（Unloading）
