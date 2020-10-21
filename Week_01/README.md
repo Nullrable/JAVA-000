@@ -27,7 +27,7 @@ Class引用指向当前方法在运行时常量池中对应的Class。
 >​ java数据类型包括：byte boolean char short int long float double reference(对象引用数据类型，是指向堆内存的引用)
 
 3.2 栈帧(Stack Frame)的局部变量表中的最小单位为slot
-> jvm规范中没有特定指定slot的大小，通常在32位操作系统中，slot占32位，此时long/double占两个slot。再64位操作系统中，slot占64位。所有数据类型都占1个slot。
+> 局部变量表里，32位以内的类型只占用一个slot，64位类型（long和double）占用两个slot。
 
 ### 4. JVM数据类型
 
@@ -187,6 +187,8 @@ Meta空间无限大，此参数无效。
 
 
 ![avatar](作业目录/jvm.png)
+
+>订正 -Xss 启动的线程分配的内存大小
 
 ### 3. 参考文章
 
