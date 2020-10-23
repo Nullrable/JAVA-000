@@ -68,12 +68,30 @@ public class HelloClassLoader extends ClassLoader {
             while ((n = fis.read(b)) != -1) {
                 bos.write(b, 0, n);
             }
-            fis.close();
+
             byte[] data = bos.toByteArray();
-            bos.close();
+
             return data;
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+
+            try {
+                if(bos != null){
+                    bos.close();
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                if(fis != null){
+                    fis.close();
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
         }
         return null;
     }
