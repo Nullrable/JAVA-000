@@ -174,8 +174,7 @@ Meta空间无限大，此参数无效。
 置该选项。
 * -XX：MaxDirectMemorySize=size，系统可以使用的最大堆外内存，这个参
 数跟 -Dsun.nio.MaxDirectMemorySize 效果相同。
--Xss, 设置每个线程栈的字节数。 例如 -Xss1m 指定线程栈为 1MB，与-
-* XX:ThreadStackSize=1m 等价
+-Xss, 设置每个线程栈的字节数。 例如 -Xss1m 指定线程栈为 1MB，与-XX:ThreadStackSize=1m 等价
 
 **详情请参考java命令参数文档: https://docs.oracle.com/en/java/javase/15/docs/specs/man/java.html**
 
