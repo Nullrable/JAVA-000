@@ -220,7 +220,41 @@ https://cloud.tencent.com/developer/article/1586341
 1. IDEA插件jclasslib
 2. JD-GUI Class to Java File: https://github.com/java-decompiler/jd-gui/releases
 
-### 5. Q&A
+
+### 6. GC分析
+### 几种算法
+
+标记-复制算法（年轻代）
+![avatar](resource/Mark-Copy.png)
+
+标记-清除算法
+![avatar](resource/Mark-Sweep.png)
+
+标记-清除-整理算法
+![avatar](resource/Mark-Sweep-Compact.png)
+
+### 几种主要的GC
+
+>串行 GC（Serial GC）/ParNewGC
+并行 GC（Parallel GC）
+CMS GC
+G1 GC
+
+![avatar](resource/gc-analy.png)
+
+### GC总结
+1. 串行 -> 并行: 重复利用多核 CPU 的优势，大幅降低 GC 暂停时间，提升吞吐量。
+2. 并行 -> 并发： 不只开多个 GC 线程并行回收，还将GC操作拆分为多个步骤，让很多繁重的任务和应用线程一起并 发执行，减少了单次 GC 暂停持续的时间，这能有效降低业务系统的延迟。
+3. CMS -> G1： G1 可以说是在 CMS 基础上进行迭代和优化开发出来的，划分为多个小堆块进行增量回收，这样就更 进一步地降低了单次 GC 暂停的时间
+4. G1 -> ZGC:：ZGC 号称无停顿垃圾收集器，这又是一次极大的改进。ZGC 和 G1 有一些相似的地方，但是底层的算法 和思想又有了全新的突破。
+
+脱离场景谈性能都是耍流氓”。
+
+目前绝大部分 Java 应用系统，堆内存并不大比如 2G-4G 以内，而且对 10ms 这种低延迟的 GC 暂停不敏感，也就是说处 理一个业务步骤，大概几百毫秒都是可以接受的，GC 暂停 100ms 还是 10ms 没多大区别。另一方面，系统的吞吐量反 而往往是我们追求的重点，这时候就需要考虑采用并行 GC。
+如果堆内存再大一些，可以考虑 G1 GC。如果内存非常大（比如超过 16G，甚至是 64G、128G），或者是对延迟非常 敏感（比如高频量化交易系统），就需要考虑使用本节提到的新 GC（ZGC/Shenandoah）。
+
+
+### 7. Q&A
 #### Q: JAVA方法声明中的最大参数数目
 >A: 我在64位Windows系统上使用Java 1.8。
  关于这个StackOverflow的所有答案说，技术限制是255个参数，没有指定为什么。
