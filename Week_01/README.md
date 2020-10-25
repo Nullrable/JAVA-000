@@ -293,19 +293,112 @@ JVM规范的第4.3.3节提供了您正在查找的信息：
 
 ### Q: 几种垃圾收集器的概念
 
-*Serial收集器*
+**Serial收集器**  -> 年轻代
 
 >这个收集器是一个单线程工作的收集器，但它的“单线 程”的意义并不仅仅是说明它只会使用一个处理器或一条收集线程去完成垃圾收集工作，更重要的是强 调在它进行垃圾收集时，必须暂停其他所有工作线程，直到它收集结束
 
-*ParNew收集器*
+>Serial收集器针对的是年轻代，其对应的老年代收集器为 Serial Old收集器
+
+**ParNew收集器**  -> 年轻代
 
 >ParNew收集器实质上是Serial收集器的多线程并行版本，除了同时使用多条线程进行垃圾收集之 外，
 其余的行为包括Serial收集器可用的所有控制参数（例如：-XX：SurvivorRatio、-XX： PretenureSizeThreshold、-XX：HandlePromotionFailure等）、
 收集算法、Stop The World、对象分配规 则、回收策略等都与Serial收集器完全一致，在实现上这两种收集器也共用了相当多的代码。
 
-*Parallel Scavenge收集器*
+**Parallel Scavenge收集器**  -> 年轻代
 
->Parallel Scavenge收集器也是一款新生代收集器，它同样是基于标记-复制算法实现的收集器，也是能够 *并行* 收集的多线程收集器。
+>Parallel Scavenge收集器也是一款新生代收集器，它同样是基于标记-复制算法实现的收集器，也是能够 **并行** 收集的多线程收集器。
 Parallel Scavenge收集器的目标则是达到一个可控制的吞吐量（Throughput）。所谓吞吐量就是处理器用于运行用户代码的时间与处理器总消耗时间的比值， 即：
 
 >吞吐量 = 运行用户代码的时间/（运行用户代码的时间 + 运行垃圾收集的时间）
+
+**Serial Old收集器** -> 老年代
+>Serial Old是Serial收集器的老年代版本，它同样是一个单线程收集器，使用标记-整理算法。
+
+**Parallel Old收集器** -> 老年代
+>Parallel Old是Parallel Scavenge收集器的老年代版本，支持多线程并发收集，基于标记-清除-整理算法实现。与新生代的Parallel Scavenge收集器配合使用
+
+**CMS收集器**  -> 老年代，目前比较过时 JDK7已经标记过时，JDK9完全废弃
+>CMS（Concurrent Mark Sweep）收集器是一种以获取最短回收停顿时间为目标的收集器。
+目前很 大一部分的Java应用集中在互联网网站或者基于浏览器的B/S系统的服务端上，这类应用通常都会较为 关注服务的响应速度，希望系统停顿时间尽可能短，以给用户带来良好的交互体验。CMS收集器就非 常符合这类应用的需求。
+* 阶段 1：Initial Mark（初始标记）
+* 阶段 2：Concurrent Mark（并发标记）
+* 阶段 3：Concurrent Preclean（并发预清理）
+* 阶段 4：Final Remark（最终标记）
+* 阶段 5：Concurrent Sweep（并发清除）
+* 阶段 6：Concurrent Reset（并发重置）
+
+退化风险
+>当CMS运行期间预留的内存无法满 足程序分配新对象的需要，就会出现一次“并发失败”（Concurrent Mode Failure），
+这时候虚拟机将不 得不启动后备预案：冻结用户线程的执行，临时启用Serial Old收集器来重新进行老年代的垃圾收集， 但这样停顿时间就很长了。
+
+**Garbage First收集器（简称G1）**
+
+* G1是一款主要面向服务端应用的垃圾收集器。
+* 面向堆内存任 何部分来组成回收集（Collection Set，一般简称CSet）进行回收，衡量标准不再是它属于哪个分代，而 是哪块内存中存放的垃圾数量最多，回收收益最大，这就是G1收集器的Mixed GC模式。
+* Humongous区域，专门用来存储大对象。G1认为只要大小超过了一个 Region容量一半的对象即可判定为大对象。每个Region的大小可以通过参数-XX：G1HeapRegionSize设 定，取值范围为1MB～32MB，且应为2的N次幂。而对于那些超过了整个Region容量的超级大对象， 将会被存放在N个连续的Humongous Region之中，G1的大多数行为都把Humongous Region作为老年代 的一部分来进行看待
+
+
+### Q: 当大对象大小超过Eden区空闲大小时，会直接晋升到老年代
+
+```
+public class TestDirectToOldEden {
+
+    private static final int _1MB = 1024 * 1024;
+
+    /*** VM参数：-verbose:gc -Xms512M -Xmx512M -Xmn10M -XX:+PrintGCDetails -XX:SurvivorRatio=8 -XX:PretenureSizeThreshold=3145728 */
+
+    public static void main(String[] args) {
+
+        byte[] allocation = new byte[11 * _1MB]; //直接分配在老年代中
+
+        for (MemoryPoolMXBean memoryPoolMXBean : ManagementFactory.getMemoryPoolMXBeans()) {
+
+            System.out.println(memoryPoolMXBean.getName() + "  总量:" + memoryPoolMXBean.getUsage().getCommitted() + "   使用的内存:" + memoryPoolMXBean.getUsage().getUsed());
+        }
+
+
+    }
+}
+```
+
+```
+lusudongdeMacBook-Pro:JAVA-000 lusudong$ java -Xmx512m -Xms512m  -Xmn10m   -XX:+PrintGCDetails Week_02.com.lsd.gc.TestDirectToOldEden
+Code Cache  总量:2555904   使用的内存:1112640
+Metaspace  总量:4980736   使用的内存:2794360
+Compressed Class Space  总量:524288   使用的内存:305384
+PS Eden Space  总量:8388608   使用的内存:688600
+PS Survivor Space  总量:1048576   使用的内存:0
+PS Old Gen  总量:526385152   使用的内存:11534352
+Heap
+ PSYoungGen      total 9216K, used 836K [0x00000007bf600000, 0x00000007c0000000, 0x00000007c0000000)
+  eden space 8192K, 10% used [0x00000007bf600000,0x00000007bf6d12a8,0x00000007bfe00000)
+  from space 1024K, 0% used [0x00000007bff00000,0x00000007bff00000,0x00000007c0000000)
+  to   space 1024K, 0% used [0x00000007bfe00000,0x00000007bfe00000,0x00000007bff00000)
+ ParOldGen       total 514048K, used 11264K [0x00000007a0000000, 0x00000007bf600000, 0x00000007bf600000)
+  object space 514048K, 2% used [0x00000007a0000000,0x00000007a0b00010,0x00000007bf600000)
+ Metaspace       used 2735K, capacity 4486K, committed 4864K, reserved 1056768K
+  class space    used 299K, capacity 386K, committed 512K, reserved 1048576K
+```
+
+> 可以看到 `PS Old Gen  总量:526385152   使用的内存:11534352` 11534352/1024/1024 = 10m
+
+```
+lusudongdeMacBook-Pro:JAVA-000 lusudong$ java -Xmx512m -Xms512m  -Xmn10m   -XX:+PrintGCDetails Week_02.com.lsd.gc.TestDirectToOldEden -XX:SurvivorRatio=8
+Code Cache  总量:2M   使用的内存:1M
+Metaspace  总量:4M   使用的内存:2M
+Compressed Class Space  总量:0M   使用的内存:0M
+PS Eden Space  总量:8M   使用的内存:7M
+PS Survivor Space  总量:1M   使用的内存:0M
+PS Old Gen  总量:502M   使用的内存:0M
+Heap
+ PSYoungGen      total 9216K, used 8004K [0x00000007bf600000, 0x00000007c0000000, 0x00000007c0000000)
+  eden space 8192K, 97% used [0x00000007bf600000,0x00000007bfdd12d8,0x00000007bfe00000)
+  from space 1024K, 0% used [0x00000007bff00000,0x00000007bff00000,0x00000007c0000000)
+  to   space 1024K, 0% used [0x00000007bfe00000,0x00000007bfe00000,0x00000007bff00000)
+ ParOldGen       total 514048K, used 0K [0x00000007a0000000, 0x00000007bf600000, 0x00000007bf600000)
+  object space 514048K, 0% used [0x00000007a0000000,0x00000007a0000000,0x00000007bf600000)
+ Metaspace       used 2735K, capacity 4486K, committed 4864K, reserved 1056768K
+  class space    used 299K, capacity 386K, committed 512K, reserved 1048576K
+```
+> > 可以看到 `PS Eden Space  总量:8M   使用的内存:7M` 
