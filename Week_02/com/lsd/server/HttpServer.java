@@ -72,10 +72,16 @@ public class HttpServer {
                 if(printWriter != null){
                     printWriter.close();
                 }
+
+                if(socket != null && !socket.isClosed()){
+                    socket.close();
+                }
             }catch (Exception e){
                 e.printStackTrace();
 
             }
+
+
         }
 
 

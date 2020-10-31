@@ -225,7 +225,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 	at Week_02.com.lsd.gc.GCLogAnalysis.generateGarbage(GCLogAnalysis.java:57)
 	at Week_02.com.lsd.gc.GCLogAnalysis.main(GCLogAnalysis.java:26)
 ```
-* 可以看出当设置的堆内存为128m时，经过7次Young GC后，后面一直在Full GC，因为堆内存过下，导致Old区内存过小，每次都出触发了Full GC 而且Full GC次数特别多，因为JVM产生的对象过快，清除过慢，JVM一直在想尽快腾出空间，但是分配的内存又不够，所以导致最后整个堆都溢出啦
+* 可以看出当设置的堆内存为128m时，经过7次Young GC后，后面一直在Full GC，因为堆内存过小，导致Old区内存过小，每次都出触发了Full GC 而且Full GC次数特别多，因为JVM产生的对象过快，清除过慢，JVM一直在想尽快腾出空间，但是分配的内存又不够，所以导致最后整个堆都溢出啦
 
 ### 分析4: 相同配置的CMS和Parallel GC有何区别
 ```
